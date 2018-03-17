@@ -58,7 +58,7 @@ function initializeCard(name, number, expirationDate){
 	if (resp.status !== '9000')
 	    throw '[ERROR] Card error writing the TLVs of card number and expiration date in in sector 1 block 2: ' + resp.status;
 	
-	print('CARD INITIALIZED');
+	print('CARD INITIALIZED!!');
     }catch(err){
 	print(err);
     }finally{
