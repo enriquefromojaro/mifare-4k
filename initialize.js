@@ -31,12 +31,6 @@ function initializeCard(name, number, expirationDate){
 	if(resp.status !== '9000')
 	    throw '[ERROR] Error loading default key in reader (position' + i + ') : ' + resp.status;
 	
-	var serial = card.getSerialNumber();
-	if(serial.status === '9000')
-	    serial = serial.data;
-	else
-	    throw '[ERROR] Error retrieving serial number: ' + serial.status;
-	
 	// Authenticating against sector 1
 	var resp = card.authenticateSector(1);
 	if(resp.status !== '9000')
