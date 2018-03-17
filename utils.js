@@ -219,5 +219,8 @@ Utils.time.formatDate = function(date, format) {
     cloneFormat = cloneFormat.replace("%M", Utils.numbers.fixedLengthIntString(
 	    date.getMinutes(), 2));
 
+    cloneFormat = cloneFormat.replace("%y", Utils.numbers.fixedLengthIntString(
+	    date.getYear() % 100, 2));
+
     return cloneFormat;
 }
