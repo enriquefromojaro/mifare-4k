@@ -84,10 +84,9 @@ Card.prototype.masterKey = new ByteString('88 99 AA BB CC DD EE FF 00 11 22 33 4
 
 Card.prototype.calcMAC = function(macChain){
     var iv = new ByteString('00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00', HEX);
-    var mac = Utils.bytes.encryptAES_CBC(macChain, this.terminalKey, iv).right(8).left(4);
-    mac = Utils.bytes.encryptAES_CBC(mac, this.masterKey, iv);
-    mac = Utils.bytes.encryptAES_CBC(mac, this.terminalKey, iv).right(8).left(4);
-    return mac.right(8).left(4);
+    var mac1 = Utils.bytes.encryptAES_CBC(macChain, this.terminalKey, iv).right(8).left(4);
+    var mac2 = Utils.bytes.encryptAES_CBC(macChain.concat(mac), this.masterKey, iv).right(8).left(4);
+    return mac1.concat(mac2);
 }
 
 Utils = {
