@@ -89,14 +89,10 @@ Card.prototype.calcMAC = function(macChain, key){
 }
 
 Card.prototype.prepareChain = function(chain){
-    print('CHAIN: ');
-    print(chain);
     var iv = new ByteString('00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00', HEX);
     var chainMAC = this.calcMAC(chain, this.terminalKey);
-    print ('MAC 1: ' + chainMAC);
     chain = Utils.bytes.encryptAES_CBC(chain.concat(chainMAC), this.masterKey, iv);
-    print('Cyphered chain');
-    print(chain);
+
     var cypheredChainMAC = this.calcMAC(chain, this.masterKey);
     return chain.concat(cypheredChainMAC);
 }
