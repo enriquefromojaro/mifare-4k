@@ -1,12 +1,15 @@
-load('utils.js')
+load('utils.js');
+load('pay.js');
 function denyPay(tlvs){
     print('Pago denegado!!')
+}
+function acceptPay(tlvs){
+    print('Pago aceptado!!')
 }
 
 function verify(payChain){
     var card = new Card();
     payChain = new ByteString(payChain, BASE64);
-    print(payChain);
 
     var tlvs = payChain.left(payChain.length -4);
     var chainMAC = payChain.right(4);
@@ -16,8 +19,7 @@ function verify(payChain){
 	return denyPay(tlvs);
     print('Adelante!!!');
     tlvs = Utils.bytes.decryptAES_CBC(tlvs, card.masterKey, new ByteString('00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00', HEX));
-    print(tlvs);
-   
+
     chainMAC = tlvs.right(4);
     tlvs = tlvs.left(tlvs.length -4);
 
@@ -25,7 +27,28 @@ function verify(payChain){
     if (! mac.equals(chainMAC))
 	return denyPay(tlvs);
 
-    // Now we have checked the macs are correct and we have the original data
+    // Checking expiration
+    var expire = tlvs.bytes(tlvs.length - 12, 6);
+    // If it is not the expire TLV
+    if(!expire.left(2).equals(new ByteString('C3 04', HEX)))
+	return denyCard(tlvs);
+    expire = expire.right(4).toString(ASCII);
+    var year = 2000 + parseInt(expire.substring(2, 4));
+    var month = parseInt(expire.substring(0, 2)) - 1;
+    if(new Date() > new Date(year, month))
+	return denyPay();
+
+    //Checking amount
+    var amount = tlvs.left(tlvs.byteAt(1) + 2);
+    // Cheking it is the right TLV
+    if(!amount.left(1).equals(new ByteString('C6', HEX)))
+	return denyPay(tlvs);
+    amount = amount.right(amount.byteAt(1)).toUnsigned();
+
+    // If the amount is bigger than 20 euros, we deny it
+    if(amount > 2000)
+	return denyPay();
+    return acceptPay(tlvs);
 }
 
-verify(pay(56.26));
+verify(pay(15.26));
