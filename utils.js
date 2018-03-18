@@ -82,11 +82,23 @@ Card.prototype.getStatus = function() {
 Card.prototype.terminalKey = new ByteString('CC DD EE FF 00 11 22 33 44 55 66 77 88 99 AA BB', HEX);
 Card.prototype.masterKey = new ByteString('88 99 AA BB CC DD EE FF 00 11 22 33 44 55 66 77', HEX);
 
-Card.prototype.calcMAC = function(macChain){
+Card.prototype.calcMAC = function(macChain, key){
     var iv = new ByteString('00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00', HEX);
-    var mac1 = Utils.bytes.encryptAES_CBC(macChain, this.terminalKey, iv).right(8).left(4);
-    var mac2 = Utils.bytes.encryptAES_CBC(macChain.concat(mac), this.masterKey, iv).right(8).left(4);
-    return mac1.concat(mac2);
+    var mac = Utils.bytes.encryptAES_CBC(macChain, key, iv).right(8).left(4);
+    return mac;
+}
+
+Card.prototype.prepareChain = function(chain){
+    print('CHAIN: ');
+    print(chain);
+    var iv = new ByteString('00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00', HEX);
+    var chainMAC = this.calcMAC(chain, this.terminalKey);
+    print ('MAC 1: ' + chainMAC);
+    chain = Utils.bytes.encryptAES_CBC(chain.concat(chainMAC), this.masterKey, iv);
+    print('Cyphered chain');
+    print(chain);
+    var cypheredChainMAC = this.calcMAC(chain, this.masterKey);
+    return chain.concat(cypheredChainMAC);
 }
 
 Utils = {
