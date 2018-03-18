@@ -41,9 +41,13 @@ function pay(price){
 
 	var resultChain = priceTLV.concat(datetimeTLV).concat(transactionTLV).concat(stabTLV).concat(cardNumTLV).concat(expirationTLV).concat(petTypeTLV).concat(verifTLV);
 
-	print(resultChain);
+	var mac = card.calcMAC(resultChain);
+	resultChain = resultChain.concat(mac);
 
 	print('Paid!! Now you are ' + price + 'euros more poor');
+
+	var result = resultChain.toString(BASE64);
+	return result;
 
     }catch(err){
 	print(err);
