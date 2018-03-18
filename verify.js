@@ -1,21 +1,22 @@
 load('utils.js');
 load('pay.js');
-function denyPay(tlvs){
-    print('Pago denegado!!');
-    var newPetitionTLV = Utils.tlv.createPetitionTypeTLV('authDenied');
+
+function verifyAnswer(tlvs, petType){
+    var newPetitionTLV = Utils.tlv.createPetitionTypeTLV(petType);
     // Remove the verification type TLV
     var verificationTLV = tlvs.right(3);
     tlvs = tlvs.left(tlvs.length -6).concat(newPetitionTLV).concat(verificationTLV);
-    return Card.prepareChain(tlvs);
+    return Card.prepareChain(tlvs).toString(BASE64);
+}
+
+function denyPay(tlvs){
+    print('Pago denegado!!');
+    return verifyAnswer(tlvs, 'authDenied'); 
     
 }
 function acceptPay(tlvs){
     print('Pago aceptado!!');
-    var newPetitionTLV = Utils.tlv.createPetitionTypeTLV('authGaranted');
-    // Remove the verification type TLV
-    var verificationTLV = tlvs.right(3);
-    tlvs = tlvs.left(tlvs.length -6).concat(newPetitionTLV).concat(verificationTLV);
-    return Card.prepareChain(tlvs);
+    return verifyAnswer(tlvs, 'authGaranted');
 }
 
 function verify(payChain){
