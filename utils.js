@@ -291,7 +291,7 @@ Utils.tlv.createPetitionTypeTLV = function(type){
 	error: new ByteString('03', HEX),
     };
     
-    return new ByteString('EA 01', HEX).concat(petCodes[type]);
+    return new ByteString('EB 01', HEX).concat(petCodes[type]);
 }
 
 Utils.tlv.createVerificationTypeTLV = function(type){

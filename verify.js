@@ -28,7 +28,6 @@ function verify(payChain){
     var mac = Card.calcMAC(tlvs, Card.masterKey);
     if (! mac.equals(chainMAC))
 	return denyPay(tlvs);
-    print('Adelante!!!');
     tlvs = Utils.bytes.decryptAES_CBC(tlvs, Card.masterKey, new ByteString('00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00', HEX));
 
     chainMAC = tlvs.right(4);
@@ -47,7 +46,7 @@ function verify(payChain){
     var year = 2000 + parseInt(expire.substring(2, 4));
     var month = parseInt(expire.substring(0, 2)) - 1;
     if(new Date() > new Date(year, month))
-	return denyPay();
+	return denyPay(tlvs);
 
     //Checking amount
     var amount = tlvs.left(tlvs.byteAt(1) + 2);
@@ -58,7 +57,7 @@ function verify(payChain){
 
     // If the amount is bigger than 20 euros, we deny it
     if(amount > 2000)
-	return denyPay();
+	return denyPay(tlvs);
     return acceptPay(tlvs);
 }
 
