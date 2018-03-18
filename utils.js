@@ -128,6 +128,25 @@ Utils.bytes.encryptAES_CBC = function (plain, cypherKey, iv){
     return cyphered;
 }
 
+Utils.bytes.decryptAES_CBC = function (crypted, cypherKey, iv){
+
+	var crypto = new Crypto();
+	var key = new Key();
+	key.setComponent(Key.AES, cypherKey);
+
+	var cryptedcpy = crypted;
+
+	var decrypted = crypto.decrypt(key, Crypto.AES_CBC, cryptedcpy, iv);
+	for (var i=decrypted.length -1; i%16 > 0; i--){
+	    if (decrypted.byteAt(i) == 0)
+		continue;
+	    if (decrypted.byteAt(i) == 0x80)
+		decrypted = decrypted.left(i);
+	    break;
+	}
+	return decrypted;
+}
+
 Utils.numbers.fixedLengthIntString = function(num, length) {
     return ("00000000000000000" + num).slice(-1 * length);
 }
