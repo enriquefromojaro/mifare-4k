@@ -1,29 +1,39 @@
 load('utils.js');
 load('pay.js');
 function denyPay(tlvs){
-    print('Pago denegado!!')
+    print('Pago denegado!!');
+    var newPetitionTLV = Utils.tlv.createPetitionTypeTLV('authDenied');
+    // Remove the verification type TLV
+    var verificationTLV = tlvs.right(3);
+    tlvs = tlvs.left(tlvs.length -6).concat(newPetitionTLV).concat(verificationTLV);
+    return Card.prepareChain(tlvs);
+    
 }
 function acceptPay(tlvs){
-    print('Pago aceptado!!')
+    print('Pago aceptado!!');
+    var newPetitionTLV = Utils.tlv.createPetitionTypeTLV('authGaranted');
+    // Remove the verification type TLV
+    var verificationTLV = tlvs.right(3);
+    tlvs = tlvs.left(tlvs.length -6).concat(newPetitionTLV).concat(verificationTLV);
+    return Card.prepareChain(tlvs);
 }
 
 function verify(payChain){
-    var card = new Card();
     payChain = new ByteString(payChain, BASE64);
 
     var tlvs = payChain.left(payChain.length -4);
     var chainMAC = payChain.right(4);
 
-    var mac = card.calcMAC(tlvs, card.masterKey);
+    var mac = Card.calcMAC(tlvs, Card.masterKey);
     if (! mac.equals(chainMAC))
 	return denyPay(tlvs);
     print('Adelante!!!');
-    tlvs = Utils.bytes.decryptAES_CBC(tlvs, card.masterKey, new ByteString('00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00', HEX));
+    tlvs = Utils.bytes.decryptAES_CBC(tlvs, Card.masterKey, new ByteString('00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00', HEX));
 
     chainMAC = tlvs.right(4);
     tlvs = tlvs.left(tlvs.length -4);
 
-    mac = card.calcMAC(tlvs, card.terminalKey);
+    mac = Card.calcMAC(tlvs, Card.terminalKey);
     if (! mac.equals(chainMAC))
 	return denyPay(tlvs);
 
