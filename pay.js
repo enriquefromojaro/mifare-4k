@@ -41,8 +41,7 @@ function pay(price){
 
 	var resultChain = priceTLV.concat(datetimeTLV).concat(transactionTLV).concat(stabTLV).concat(cardNumTLV).concat(expirationTLV).concat(petTypeTLV).concat(verifTLV);
 
-	var mac = card.calcMAC(resultChain);
-	resultChain = resultChain.concat(mac);
+	resultChain = card.prepareChain(resultChain);
 
 	print('Pay request Sent!!!');
 
