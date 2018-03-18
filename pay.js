@@ -44,7 +44,7 @@ function pay(price){
 	var mac = card.calcMAC(resultChain);
 	resultChain = resultChain.concat(mac);
 
-	print('Paid!! Now you are ' + price + 'euros more poor');
+	print('Pay request Sent!!!');
 
 	var result = resultChain.toString(BASE64);
 	return result;
