@@ -112,7 +112,10 @@ Utils.bytes.encryptAES_CBC = function (plain, cypherKey, iv){
     var zeros = (16 - (plain.length % 16)) % 16;
 
     var plaincpy = plain;
-    for( var i=0; i<zeros; i++){
+
+    if(zeros > 0)
+	plaincpy = plaincpy.concat(new ByteString('80', HEX));
+    for( var i=1; i<zeros; i++){
 	plaincpy = plaincpy.concat(new ByteString('00', HEX));
     }
 
