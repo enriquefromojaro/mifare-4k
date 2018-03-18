@@ -79,26 +79,15 @@ Card.prototype.getStatus = function() {
     return this.SW.toString(16);
 }
 
-Card.prototype.calcMAC = function(macChain, serialNum){
-    
-    var masterKey = new ByteString('D1 1C 3E 03 9E 62 39 A8', HEX)
-    var key = masterKey.xor(new ByteString('00 00 00 00', HEX).concat(serialNum));
-    
-    var iv = new ByteString('73 2B BD 76', HEX).concat(serialNum.add(1));
-    var mac = Utils.bytes.encryptDES_CBC(macChain, key, iv);
+Card.prototype.terminalKey = new ByteString('CC DD EE FF 00 11 22 33 44 55 66 77 88 99 AA BB', HEX);
+Card.prototype.masterKey = new ByteString('88 99 AA BB CC DD EE FF 00 11 22 33 44 55 66 77', HEX);
+
+Card.prototype.calcMAC = function(macChain){
+    var iv = new ByteString('00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00', HEX);
+    var mac = Utils.bytes.encryptAES_CBC(macChain, this.terminalKey, iv).right(8).left(4);
+    mac = Utils.bytes.encryptAES_CBC(mac, this.masterKey, iv);
+    mac = Utils.bytes.encryptAES_CBC(mac, this.terminalKey, iv).right(8).left(4);
     return mac.right(8).left(4);
-}
-
-Card.prototype.fillMAC = function(mac){
-    return new ByteString('68 C3 DB 5B 01 29', HEX).concat(mac).concat(new ByteString('63 65 5F E6 FC ED', HEX));
-}
-
-Card.prototype.composeCalcAndFillMAC = function(credit, emissionDate, transport, payMethod, emitter, serial){
-    // for a max value of 15000, we need 2 bytes
-    var creditSTR = new ByteString('00 00', HEX).add(credit).toString(HEX);
-    var macChain = creditSTR+emissionDate+transport+payMethod+emitter;
-    var mac = this.calcMAC(new ByteString(macChain, ASCII), serial);
-    return this.fillMAC(mac);
 }
 
 Utils = {
@@ -108,39 +97,25 @@ Utils = {
     tlv: {}
 };
 
-Utils.numbers.fixedLengthIntString = function(num, length) {
-    return ("00000000000000000" + num).slice(-1 * length);
-}
+Utils.bytes.encryptAES_CBC = function (plain, cypherKey, iv){
+    var zeros = (16 - (plain.length % 16)) % 16;
 
-Utils.bytes.encryptDES_CBC = function (plain, cypherKey, iv) {
+    var plaincpy = plain;
+    for( var i=0; i<zeros; i++){
+	plaincpy = plaincpy.concat(new ByteString('00', HEX));
+    }
+
     var crypto = new Crypto();
     var key = new Key();
-    key.setComponent(Key.DES, cypherKey);
-    
-    var plaincpy = plain.pad(Crypto.ISO9797_METHOD_2, true);
+    key.setComponent(Key.AES, cypherKey);
 
-    var cyphered = crypto.encrypt(key, Crypto.DES_CBC, plaincpy, iv);
+    var cyphered = crypto.encrypt(key, Crypto.AES_CBC, plaincpy, iv);
 
     return cyphered;
 }
 
-Utils.bytes.decryptDES_CBC = function (crypted, cypherKey, iv) {
-
-    var crypto = new Crypto();
-    var key = new Key();
-    key.setComponent(Key.DES, cypherKey);
-
-    var decrypted = crypto.decrypt(key, Crypto.DES_CBC, crypted, iv);
-    return decrypted;
-}
-
-Utils.bytes.circularShift = function(val, direction, places){
-    places = 'undefined' == typeof places? 1: places;
-    if(direction == 'l')
-	return val.right(val.length - places).concat(val.left(places));
-    if(direction == 'r')
-	return val.right(places).concat(val.left( val.length - places));
-    throw "[ERROR] '" + direction + "' is not a valid direction value"
+Utils.numbers.fixedLengthIntString = function(num, length) {
+    return ("00000000000000000" + num).slice(-1 * length);
 }
 
 Utils.time.getToday = function() {
