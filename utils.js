@@ -8,9 +8,9 @@ Card.prototype.loadDefaultAuthKeyInReader = function(keyNum){
     return this.loadAuthKeysInReader(keyNum, new ByteString('FF FF FF FF FF FF', HEX));
 }
 
-Card.prototype.readBlock = function(sector, block, length){
+Card.prototype.readBlock = function(sector, block){
     block = sector*4 + block
-    var resp = this.sendApdu(0xFF, 0xB0, 0x00, block, length);
+    var resp = this.sendApdu(0xFF, 0xB0, 0x00, block, 16);
     return {
 	data: resp,
 	status: this.getStatus()
